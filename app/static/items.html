@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Items</title>
+    <link rel="stylesheet" href="/static/config.css">
+</head>
+<body>
+        <div class="container">
+                <h1>Items</h1>
+                <button onclick="window.location.href='/config'">Back</button>
+                <button id="configBtn" style="margin-left:1em;">Config</button>
+                <form id="itemFields" style="margin-top:2em;"></form>
+                <button id="saveItemBtn" type="button" style="margin-top:1em;">Save Item</button>
+                <div id="itemList" style="margin-top:2em;"></div>
+        </div>
+
+        <!-- Config Modal -->
+        <div id="configModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#0008;z-index:1000;">
+            <div style="background:#fffde7;max-width:400px;margin:10vh auto;padding:2em;border-radius:12px;box-shadow:0 4px 16px #0002;position:relative;">
+                <h2>Configure Fields</h2>
+                        <div id="fieldInputStack">
+                            <div style="margin-bottom:0.5em;">
+                                <input id="fieldName" type="text" placeholder="Field Name" style="width:100%;">
+                            </div>
+                            <div style="margin-bottom:0.5em;">
+                                <select id="fieldType" style="width:100%;">
+                                    <option value="">Type</option>
+                                    <option value="text">Text</option>
+                                    <option value="integer">Integer</option>
+                                    <option value="combo">Combo</option>
+                                    <option value="checkbox">Check Box</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button type="button" id="addFieldBtn" style="width:100%;">Add</button>
+                            </div>
+                        </div>
+                        <ul id="fieldsList" style="margin:1em 0 0 0;padding:0;list-style:none;"></ul>
+                <button id="closeConfig" type="button" style="margin-top:1em;">Close</button>
+            </div>
+        </div>
+        <script src="/static/items.js"></script>
+</body>
+</html>
