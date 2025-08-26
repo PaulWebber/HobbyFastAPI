@@ -10,7 +10,7 @@ A starter FastAPI web application.
    ```
 2. Run the app:
    ```powershell
-   uvicorn main:app --reload
+   .venv/Scripts/Activate.ps1; python -m uvicorn main:app --reload
    ```
 
 ## Structure
