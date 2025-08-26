@@ -1,28 +1,31 @@
 [
   {
-    "id": "626995cf-37fc-4a4e-91f6-6d9d99452648",
-    "name": "Slingshot",
-    "items": [],
+    "id": "7a4928d6-8e06-4b04-b4a8-b4ce7bb3024d",
+    "name": "Slings",
+    "items": [
+      {
+        "Lazex": "",
+        "chjdfe43": "",
+        "ghdgfhd": ""
+      },
+      {
+        "Lazex": "",
+        "chjdfe43": "gdfgsdfgdf",
+        "ghdgfhd": ""
+      }
+    ],
     "fields": [
       {
-        "name": "Name",
-        "type": "text",
-        "options": null
+        "name": "Lazex",
+        "type": "combo"
       },
       {
-        "name": "Latex Size",
-        "type": "combo",
-        "options": null
+        "name": "chjdfe43",
+        "type": "text"
       },
       {
-        "name": "Combo 1",
-        "type": "combo",
-        "options": null
-      },
-      {
-        "name": "gsdfgsdf",
-        "type": "combo",
-        "options": null
+        "name": "ghdgfhd",
+        "type": "combo"
       }
     ]
   }

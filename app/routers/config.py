@@ -114,17 +114,31 @@ def add_hobby(hobby: Hobby):
 def get_fields(hobby_id: UUID):
     for h in hobbies:
         if h.id == hobby_id:
-            return h.fields or []
+            # Remove 'options' from combo fields before returning
+            fields = h.fields or []
+            for f in fields:
+                if isinstance(f, dict) and f.get('type') == 'combo' and 'options' in f:
+                    f.pop('options', None)
+                elif hasattr(f, 'type') and getattr(f, 'type') == 'combo' and hasattr(f, 'options'):
+                    delattr(f, 'options')
+            return fields
     raise HTTPException(status_code=404, detail="Hobby not found")
 
 @router.post("/hobbies/{hobby_id}/fields")
 def set_fields(hobby_id: UUID, fields: List[FieldConfig]):
     global hobbies
+    # Remove 'options' from combo fields before saving
+    cleaned_fields = []
+    for f in fields:
+        f_dict = f.dict() if hasattr(f, 'dict') else dict(f)
+        if f_dict.get('type') == 'combo' and 'options' in f_dict:
+            f_dict.pop('options', None)
+        cleaned_fields.append(f_dict)
     for h in hobbies:
         if h.id == hobby_id:
-            h.fields = [f.dict() for f in fields]
+            h.fields = cleaned_fields
             save_hobbies()
-            logging.info(f"Updated fields for hobby {hobby_id}: {fields}")
+            logging.info(f"Updated fields for hobby {hobby_id}: {cleaned_fields}")
             hobbies = load_hobbies()
             return h.fields
     logging.warning(f"Hobby not found for fields update: {hobby_id}")

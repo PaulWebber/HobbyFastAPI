@@ -34,21 +34,13 @@ async function renderFields() {
     form.innerHTML = '';
     for (const field of fields) {
         let input = '';
+        let options = [];
         if (field.type === 'combo') {
             const hobbyId = getHobbyId();
-            let options = [];
             try {
                 const res = await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.name)}/options`);
                 options = await res.json();
             } catch {}
-            input = `<select name='${field.name}'>` +
-                options.map(opt => `<option value='${opt}'>${opt}</option>`).join('') + '</select>';
-        } else if (field.type === 'text') {
-            input = `<input type='text' name='${field.name}' placeholder='${field.name}' />`;
-        } else if (field.type === 'integer') {
-            input = `<input type='number' name='${field.name}' placeholder='${field.name}' />`;
-        } else if (field.type === 'checkbox') {
-            input = `<input type='checkbox' name='${field.name}' />`;
         }
         const row = document.createElement('div');
         row.className = 'field-row';
@@ -86,7 +78,14 @@ async function renderFields() {
                 select.appendChild(option);
             }
             row.appendChild(select);
-        } else {
+        } else if (field.type === 'text') {
+            input = `<input type='text' name='${field.name}' placeholder='${field.name}' />`;
+            row.innerHTML = `<label>${field.name}:</label> ${input}`;
+        } else if (field.type === 'integer') {
+            input = `<input type='number' name='${field.name}' placeholder='${field.name}' />`;
+            row.innerHTML = `<label>${field.name}:</label> ${input}`;
+        } else if (field.type === 'checkbox') {
+            input = `<input type='checkbox' name='${field.name}' />`;
             row.innerHTML = `<label>${field.name}:</label> ${input}`;
         }
         form.appendChild(row);
@@ -169,17 +168,18 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('configBtn').onclick = openConfigModal;
     document.getElementById('closeConfig').onclick = closeConfigModal;
     document.getElementById('addFieldBtn').onclick = async function() {
-        const name = document.getElementById('fieldName').value.trim();
-        const type = document.getElementById('fieldType').value;
-        if (!name || !type) return;
-        let fields = await loadFieldConfig();
-        fields.push({ name, type });
+    const name = document.getElementById('fieldName').value.trim();
+    const type = document.getElementById('fieldType').value;
+    if (!name || !type) return;
+    let fields = await loadFieldConfig();
+    // Do not include 'options' in field config
+    fields.push({ name, type });
     await saveFieldConfig(fields);
     // Always reload fields from backend after saving to ensure UI is in sync
     await renderFields();
     await renderFieldsList();
-        document.getElementById('fieldName').value = '';
-        document.getElementById('fieldType').value = '';
+    document.getElementById('fieldName').value = '';
+    document.getElementById('fieldType').value = '';
     };
     document.getElementById('saveItemBtn').onclick = async function() {
         const hobbyId = getHobbyId();
