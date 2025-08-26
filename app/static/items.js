@@ -41,7 +41,7 @@ async function renderFields() {
                 const res = await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.name)}/options`);
                 options = await res.json();
             } catch {}
-            input = `<select name='${field.name}'><option value='' style='font-style:italic;'>Add New...</option>` +
+            input = `<select name='${field.name}'>` +
                 options.map(opt => `<option value='${opt}'>${opt}</option>`).join('') + '</select>';
         } else if (field.type === 'text') {
             input = `<input type='text' name='${field.name}' placeholder='${field.name}' />`;
@@ -52,27 +52,44 @@ async function renderFields() {
         }
         const row = document.createElement('div');
         row.className = 'field-row';
-        row.innerHTML = `<label>${field.name}:</label> ${input}`;
-        form.appendChild(row);
-        // Add event for Add New... on combo
         if (field.type === 'combo') {
-            const select = row.querySelector('select');
-            select.addEventListener('change', async function() {
-                if (this.selectedIndex === 0) {
-                    const newVal = prompt('Enter new option for ' + field.name + ':');
-                    if (newVal) {
-                        await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.name)}/options`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(newVal)
-                        });
-                        await renderFields();
-                    } else {
-                        this.selectedIndex = 1;
-                    }
+            // Create label and button container
+            const label = document.createElement('label');
+            label.textContent = `${field.name}:`;
+            const addBtn = document.createElement('button');
+            addBtn.type = 'button';
+            addBtn.textContent = 'Add Option';
+            addBtn.style.marginLeft = '8px';
+            addBtn.onclick = async function() {
+                const newVal = prompt('Enter new option for ' + field.name + ':');
+                if (newVal) {
+                    await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.name)}/options`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newVal)
+                    });
+                    await renderFields();
                 }
-            });
+            };
+            // Label and button side by side
+            const labelBtnContainer = document.createElement('span');
+            labelBtnContainer.appendChild(label);
+            labelBtnContainer.appendChild(addBtn);
+            row.appendChild(labelBtnContainer);
+            // Add the select element as a DOM node
+            const select = document.createElement('select');
+            select.name = field.name;
+            for (const opt of options) {
+                const option = document.createElement('option');
+                option.value = opt;
+                option.textContent = opt;
+                select.appendChild(option);
+            }
+            row.appendChild(select);
+        } else {
+            row.innerHTML = `<label>${field.name}:</label> ${input}`;
         }
+        form.appendChild(row);
     }
     await renderItemList();
 }

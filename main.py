@@ -1,10 +1,24 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+
 import os
+import logging
 
 from app.routers import root, config
 
+
+
+# Configure logging to file and console
+LOG_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), "app.log"))
+logging.basicConfig(
+	level=logging.INFO,
+	format='%(asctime)s %(levelname)s %(name)s %(message)s',
+	handlers=[
+		logging.FileHandler(LOG_FILE, mode='a', encoding='utf-8'),
+		logging.StreamHandler()
+	]
+)
 
 app = FastAPI()
 

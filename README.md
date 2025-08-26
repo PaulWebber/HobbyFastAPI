@@ -24,3 +24,4 @@ A starter FastAPI web application.
 1. Generate log file from terminal
 2. Convert JSON file to a DB, possibly Postgrest
 3. Try to generate a Android APK app
+4. Make sure Combo Boxes cannot have the same value. Maybe validate with UPPER()
