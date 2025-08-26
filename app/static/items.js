@@ -11,7 +11,10 @@ const FIELD_TYPES = [
 function getHobbyId() {
     const match = window.location.pathname.match(/\/items\/(.+)$/);
     return match ? match[1] : null;
+
+// Get hobby name from a global variable or from the DOM (set in HTML template)
 }
+
 
 async function loadFieldConfig() {
     const hobbyId = getHobbyId();
@@ -32,11 +35,11 @@ async function renderFields() {
     const fields = await loadFieldConfig();
     const form = document.getElementById('itemFields');
     form.innerHTML = '';
+    const hobbyId = getHobbyId();
     for (const field of fields) {
         let input = '';
         let options = [];
         if (field.type === 'combo') {
-            const hobbyId = getHobbyId();
             try {
                 const res = await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.name)}/options`);
                 options = await res.json();
