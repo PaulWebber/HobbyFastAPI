@@ -1,6 +1,7 @@
 
 # All imports at the top
-from fastapi import APIRouter, HTTPException
+
+from fastapi import APIRouter, HTTPException, Body
 import logging
 from app.schemas.hobby import Hobby, FieldConfig
 from typing import List
@@ -11,6 +12,52 @@ from uuid import UUID
 logging.basicConfig(level=logging.INFO)
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), "..", "hobbies.json")
+COMBO_OPTIONS_FILE = os.path.join(os.path.dirname(__file__), "..", "combo_options.json")
+
+
+
+# Router (must be defined before endpoints)
+router = APIRouter(prefix="/config", tags=["Config"])
+
+# Utility functions for combo options
+def load_combo_options():
+    if os.path.exists(COMBO_OPTIONS_FILE):
+        try:
+            with open(COMBO_OPTIONS_FILE, "r") as f:
+                data = json.load(f)
+                return data.get("combo_options", {})
+        except Exception:
+            return {}
+    return {}
+
+def save_combo_options(options):
+    with open(COMBO_OPTIONS_FILE, "w") as f:
+        json.dump({"combo_options": options}, f, indent=2)
+
+
+
+# Endpoints
+@router.get("/hobbies/{hobby_id}/fields/{field_name}/options")
+def get_combo_options(hobby_id: UUID, field_name: str):
+    options = load_combo_options()
+    key = f"{hobby_id}:{field_name}"
+    # Always return a list, never raise 404
+    result = options.get(key)
+    if isinstance(result, list):
+        return result
+    return []
+
+@router.post("/hobbies/{hobby_id}/fields/{field_name}/options")
+def add_combo_option(hobby_id: UUID, field_name: str, value: str = Body(...)):
+    options = load_combo_options()
+    key = f"{hobby_id}:{field_name}"
+    if key not in options:
+        options[key] = []
+    if value not in options[key]:
+        options[key].append(value)
+        save_combo_options(options)
+    return options[key]
+
 
 # Utility functions
 def load_hobbies():
@@ -26,6 +73,7 @@ def load_hobbies():
             return []
     return []
 
+
 def save_hobbies():
     def encode(obj):
         if isinstance(obj, UUID):
@@ -38,8 +86,7 @@ def save_hobbies():
     with open(DATA_FILE, "w") as f:
         json.dump([encode(hobby.dict()) for hobby in hobbies], f, indent=2)
 
-# Router and data
-router = APIRouter(prefix="/config", tags=["Config"])
+# Load hobbies after function is defined
 hobbies = load_hobbies()
 
 # Endpoints

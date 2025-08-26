@@ -19,3 +19,8 @@ A starter FastAPI web application.
 - `app/models/`: Database models
 - `app/schemas/`: Pydantic schemas
 - `app/core/`: Core logic/config
+
+## To Do
+1. Generate log file from terminal
+2. Convert JSON file to a DB, possibly Postgrest
+3. Try to generate a Android APK app
