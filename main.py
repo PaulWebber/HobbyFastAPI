@@ -16,8 +16,10 @@ STATIC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "app", "sta
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
-# Serve config page
+
+# Serve config page at /config and /
 @app.get("/config", include_in_schema=False)
+@app.get("/", include_in_schema=False)
 def config_page():
 	return FileResponse(os.path.join(STATIC_DIR, "config.html"))
 
