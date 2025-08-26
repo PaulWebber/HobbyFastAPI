@@ -1,3 +1,5 @@
+
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -20,7 +22,10 @@ logging.basicConfig(
 	]
 )
 
+
+
 app = FastAPI()
+
 
 app.include_router(root.router)
 app.include_router(config.router)
@@ -28,6 +33,11 @@ app.include_router(config.router)
 # Mount static files
 STATIC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "app", "static"))
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# Serve favicon.ico from the provided PNG image (only once, after STATIC_DIR is defined)
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+	return FileResponse(os.path.join(STATIC_DIR, "cartoon picture of a.png"), media_type="image/png")
 
 
 

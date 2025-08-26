@@ -8,13 +8,17 @@ const FIELD_TYPES = [
     { value: 'checkbox', label: 'Check Box' }
 ];
 
+
+
+
+
+
+
+
 function getHobbyId() {
     const match = window.location.pathname.match(/\/items\/(.+)$/);
     return match ? match[1] : null;
-
-// Get hobby name from a global variable or from the DOM (set in HTML template)
 }
-
 
 async function loadFieldConfig() {
     const hobbyId = getHobbyId();
@@ -154,56 +158,96 @@ function closeConfigModal() {
     document.getElementById('configModal').style.display = 'none';
 }
 
+
+// Move these function declarations above DOMContentLoaded so they are defined before use
+let editFieldIndex = null;
+let originalFieldName = null;
+let originalFieldType = null;
+
 async function renderFieldsList() {
     const fields = await loadFieldConfig();
     const ul = document.getElementById('fieldsList');
     ul.innerHTML = '';
-    fields.forEach(f => {
+    fields.forEach((f, idx) => {
         const li = document.createElement('li');
         li.textContent = `${f.name} (${f.type.charAt(0).toUpperCase() + f.type.slice(1)})`;
+        li.style.cursor = 'pointer';
+        li.onclick = () => openEditFieldModal(idx, f);
         ul.appendChild(li);
     });
 }
 
+function openEditFieldModal(idx, field) {
+    editFieldIndex = idx;
+    originalFieldName = field.name;
+    originalFieldType = field.type;
+    document.getElementById('editFieldName').value = field.name;
+    document.getElementById('editFieldType').value = field.type;
+    document.getElementById('editFieldModal').style.display = 'block';
+}
+
+function closeEditFieldModal() {
+    document.getElementById('editFieldModal').style.display = 'none';
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    renderFields();
-    renderFieldsList();
-    document.getElementById('configBtn').onclick = openConfigModal;
-    document.getElementById('closeConfig').onclick = closeConfigModal;
-    document.getElementById('addFieldBtn').onclick = async function() {
-    const name = document.getElementById('fieldName').value.trim();
-    const type = document.getElementById('fieldType').value;
-    if (!name || !type) return;
-    let fields = await loadFieldConfig();
-    // Do not include 'options' in field config
-    fields.push({ name, type });
-    await saveFieldConfig(fields);
-    // Always reload fields from backend after saving to ensure UI is in sync
-    await renderFields();
-    await renderFieldsList();
-    document.getElementById('fieldName').value = '';
-    document.getElementById('fieldType').value = '';
+
+    document.getElementById('closeConfig').onclick = function() {
+        closeConfigModal();
     };
-    document.getElementById('saveItemBtn').onclick = async function() {
+
+    document.getElementById('addFieldBtn').onclick = async function() {
+        const name = document.getElementById('fieldName').value.trim();
+        const type = document.getElementById('fieldType').value;
+        if (!name || !type) return;
+        let fields = await loadFieldConfig();
+        fields.push({ name, type });
+        await saveFieldConfig(fields);
+        document.getElementById('fieldName').value = '';
+        document.getElementById('fieldType').value = '';
+        await renderFieldsList();
+        await renderFields();
+    };
+    // ...existing code...
+    document.getElementById('configBtn').onclick = function() {
+        openConfigModal();
+        renderFieldsList();
+    };
+    document.getElementById('saveEditFieldBtn').onclick = async function() {
+        const newName = document.getElementById('editFieldName').value.trim();
+        const newType = document.getElementById('editFieldType').value;
+        if (!newName || !newType || editFieldIndex === null) return;
+        let fields = await loadFieldConfig();
         const hobbyId = getHobbyId();
-        const fields = await loadFieldConfig();
-        const form = document.getElementById('itemFields');
-        const data = {};
-        fields.forEach(field => {
-            let val;
-            if (field.type === 'checkbox') {
-                val = form.querySelector(`[name='${field.name}']`).checked;
-            } else {
-                val = form.querySelector(`[name='${field.name}']`).value;
-            }
-            data[field.name] = val;
-        });
-        await fetch(`/config/hobbies/${hobbyId}/items`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        await renderItemList();
-        form.reset();
+        // If name or type changed, update combo_options.json if needed
+        const oldField = fields[editFieldIndex];
+        const wasCombo = oldField.type === 'combo';
+        const isCombo = newType === 'combo';
+        // Update field
+        fields[editFieldIndex] = { name: newName, type: newType };
+        await saveFieldConfig(fields);
+        // If combo field name changed, update combo_options.json key
+        if (wasCombo && (originalFieldName !== newName)) {
+            await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(originalFieldName)}/options`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newName })
+            });
+        }
+        await renderFields();
+        await renderFieldsList();
+        closeEditFieldModal();
+        editFieldIndex = null;
+        originalFieldName = null;
+        originalFieldType = null;
+    };
+
+    document.getElementById('cancelEditFieldBtn').onclick = function() {
+        closeEditFieldModal();
+        editFieldIndex = null;
+        originalFieldName = null;
+        originalFieldType = null;
     };
 });
+
+

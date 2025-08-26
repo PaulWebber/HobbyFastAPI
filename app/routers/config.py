@@ -1,4 +1,5 @@
 
+
 # All imports at the top
 
 from fastapi import APIRouter, HTTPException, Body
@@ -16,8 +17,27 @@ COMBO_OPTIONS_FILE = os.path.join(os.path.dirname(__file__), "..", "combo_option
 
 
 
+
 # Router (must be defined before endpoints)
 router = APIRouter(prefix="/config", tags=["Config"])
+
+# Router (must be defined before endpoints)
+router = APIRouter(prefix="/config", tags=["Config"])
+
+# Add PUT endpoint to rename combo field in combo_options.json (must be after router is defined)
+@router.put("/hobbies/{hobby_id}/fields/{field_name}/options")
+def rename_combo_option_key(hobby_id: UUID, field_name: str, data: dict = Body(...)):
+    new_name = data.get("newName")
+    if not new_name:
+        raise HTTPException(status_code=400, detail="New field name required")
+    options = load_combo_options()
+    old_key = f"{hobby_id}:{field_name}"
+    new_key = f"{hobby_id}:{new_name}"
+    if old_key in options:
+        options[new_key] = options.pop(old_key)
+        save_combo_options(options)
+        return {"detail": "Renamed combo options key"}
+    return {"detail": "No combo options to rename"}
 
 # Utility functions for combo options
 def load_combo_options():

@@ -1,37 +1,23 @@
 [
   {
-    "id": "7a4928d6-8e06-4b04-b4a8-b4ce7bb3024d",
-    "name": "Slings",
-    "items": [
-      {
-        "Lazex": "",
-        "chjdfe43": "",
-        "ghdgfhd": ""
-      },
-      {
-        "Lazex": "",
-        "chjdfe43": "gdfgsdfgdf",
-        "ghdgfhd": ""
-      },
-      {
-        "Lazex": "44",
-        "chjdfe43": "testy",
-        "ghdgfhd": ""
-      }
-    ],
+    "id": "4249e6e7-3163-45b0-9058-a0981b1f7906",
+    "name": "Sling",
+    "items": [],
     "fields": [
       {
-        "name": "Lazex",
-        "type": "combo"
-      },
-      {
-        "name": "chjdfe43",
+        "name": "texty",
         "type": "text"
       },
       {
-        "name": "ghdgfhd",
+        "name": "comby",
         "type": "combo"
       }
     ]
+  },
+  {
+    "id": "9933dc43-1f80-4d83-b969-4b94616c8adf",
+    "name": "vgcgcxv",
+    "items": [],
+    "fields": []
   }
 ]

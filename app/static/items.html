@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Items</title>
+    <link rel="icon" type="image/png" href="/static/cartoon%20picture%20of%20a.png">
     <link rel="stylesheet" href="/static/config.css">
 </head>
 <body>
@@ -37,7 +38,21 @@
                                 <button type="button" id="addFieldBtn" style="width:100%;">Add</button>
                             </div>
                         </div>
-                        <ul id="fieldsList" style="margin:1em 0 0 0;padding:0;list-style:none;"></ul>
+                                        <ul id="fieldsList" style="margin:1em 0 0 0;padding:0;list-style:none;"></ul>
+                                        <div id="editFieldModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#0008;z-index:2000;">
+                                            <div style="background:#fffde7;max-width:350px;margin:15vh auto;padding:2em;border-radius:12px;box-shadow:0 4px 16px #0002;position:relative;">
+                                                <h3>Edit Field</h3>
+                                                <input id="editFieldName" type="text" style="width:100%;margin-bottom:0.5em;" placeholder="Field Name">
+                                                <select id="editFieldType" style="width:100%;margin-bottom:0.5em;">
+                                                    <option value="text">Text</option>
+                                                    <option value="integer">Integer</option>
+                                                    <option value="combo">Combo</option>
+                                                    <option value="checkbox">Check Box</option>
+                                                </select>
+                                                <button id="saveEditFieldBtn" type="button" style="width:100%;margin-bottom:0.5em;">Save</button>
+                                                <button id="cancelEditFieldBtn" type="button" style="width:100%;">Cancel</button>
+                                            </div>
+                                        </div>
                 <button id="closeConfig" type="button" style="margin-top:1em;">Close</button>
             </div>
         </div>
