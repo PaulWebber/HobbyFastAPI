@@ -2,7 +2,13 @@
   {
     "id": "4249e6e7-3163-45b0-9058-a0981b1f7906",
     "name": "Sling",
-    "items": [],
+    "items": [
+      {
+        "texty": "",
+        "comby": "44",
+        "text": "gdfgdfg"
+      }
+    ],
     "fields": [
       {
         "name": "texty",
@@ -10,6 +16,10 @@
       },
       {
         "name": "comby",
+        "type": "combo"
+      },
+      {
+        "name": "text",
         "type": "combo"
       }
     ]

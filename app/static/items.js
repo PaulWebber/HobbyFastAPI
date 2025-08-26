@@ -192,6 +192,35 @@ function closeEditFieldModal() {
 
 document.addEventListener('DOMContentLoaded', function() {
 
+    document.getElementById('saveItemBtn').onclick = async function() {
+        const form = document.getElementById('itemFields');
+        const fields = await loadFieldConfig();
+        const hobbyId = getHobbyId();
+        let item = {};
+        for (const field of fields) {
+            let val;
+            if (field.type === 'combo') {
+                const select = form.querySelector(`select[name='${field.name}']`);
+                val = select ? select.value : '';
+            } else if (field.type === 'checkbox') {
+                const input = form.querySelector(`input[name='${field.name}']`);
+                val = input ? input.checked : false;
+            } else {
+                const input = form.querySelector(`input[name='${field.name}']`);
+                val = input ? input.value : '';
+                if (field.type === 'integer') val = val ? parseInt(val) : '';
+            }
+            item[field.name] = val;
+        }
+        await fetch(`/config/hobbies/${hobbyId}/items`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item)
+        });
+        await renderItemList();
+        await renderFields();
+    };
+
     document.getElementById('closeConfig').onclick = function() {
         closeConfigModal();
     };
