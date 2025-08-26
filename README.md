@@ -26,3 +26,13 @@ A starter FastAPI web application.
 2. Convert JSON file to a DB, possibly Postgrest
 3. Try to generate a Android APK app
 4. Make sure Combo Boxes cannot have the same value. Maybe validate with UPPER()
+
+# Clean test
+A clean hobbies.json is
+[]
+
+A clean combo_options is
+{
+  "combo_options": {
+  }
+}
