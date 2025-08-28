@@ -1,0 +1,22 @@
+{
+  "name": "hobbyfastapi",
+  "version": "1.0.0",
+  "description": "A starter FastAPI web application.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PaulWebber/HobbyFastAPI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PaulWebber/HobbyFastAPI/issues"
+  },
+  "homepage": "https://github.com/PaulWebber/HobbyFastAPI#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.3.0"
+  }
+}
