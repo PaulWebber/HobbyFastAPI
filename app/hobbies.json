@@ -1,23 +1,30 @@
 [
   {
-    "id": "dffe645f-efb5-4959-89d4-91ce947d5ea7",
-    "name": "Knitting",
-    "items": [],
+    "id": "142b211e-71d6-4075-ad54-dcaa3b3a04a5",
+    "name": "farting",
+    "items": [
+      {
+        "texty1": "gdfgsdfgsdf",
+        "inty1": 1,
+        "liastyu1": "gsdfgsdfgf",
+        "checky1": true
+      }
+    ],
     "fields": [
       {
-        "name": "Name",
+        "name": "texty1",
         "type": "text"
       },
       {
-        "name": "Qty",
+        "name": "inty1",
         "type": "integer"
       },
       {
-        "name": "List",
+        "name": "liastyu1",
         "type": "combo"
       },
       {
-        "name": "Yes",
+        "name": "checky1",
         "type": "checkbox"
       }
     ]

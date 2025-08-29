@@ -215,26 +215,39 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             item[field.name] = val;
         }
-        if (window.editingItemIndex !== null) {
-            // Update existing item
-            await fetch(`/config/hobbies/${hobbyId}/items/${window.editingItemIndex}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(item)
-            });
-            window.editingItemIndex = null;
-            document.getElementById('saveItemBtn').textContent = 'Save Item';
-        } else {
-            // Add new item
-            await fetch(`/config/hobbies/${hobbyId}/items`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(item)
-            });
+        console.log('DEBUG: hobbyId', hobbyId);
+        console.log('DEBUG: item to save', item);
+        try {
+            let response;
+            if (typeof window.editingItemIndex === 'number' && window.editingItemIndex >= 0) {
+                // Update existing item
+                response = await fetch(`/config/hobbies/${hobbyId}/items/${window.editingItemIndex}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(item)
+                });
+                window.editingItemIndex = null;
+                document.getElementById('saveItemBtn').textContent = 'Save Item';
+            } else {
+                // Add new item
+                response = await fetch(`/config/hobbies/${hobbyId}/items`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(item)
+                });
+                window.editingItemIndex = null;
+            }
+            console.log('DEBUG: fetch response', response);
+            if (!response.ok) {
+                const err = await response.text();
+                console.error('DEBUG: fetch error', err);
+            }
+        } catch (e) {
+            console.error('DEBUG: exception during fetch', e);
         }
-    await renderFields();
-    await renderItemList();
-    if (form.reset) form.reset();
+        await renderFields();
+        await renderItemList();
+        if (form.reset) form.reset();
     };
 
     document.getElementById('closeConfig').onclick = function() {
