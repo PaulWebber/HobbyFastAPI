@@ -1,14 +1,25 @@
 [
   {
-    "id": "6a6e74af-4b9e-4f90-8399-90bd24c6cfd2",
-    "name": "Slingshots",
+    "id": "dffe645f-efb5-4959-89d4-91ce947d5ea7",
+    "name": "Knitting",
     "items": [],
-    "fields": []
-  },
-  {
-    "id": "a254c8c3-fd5f-4e17-aad3-afc66b4fa43c",
-    "name": "Scuba Diving",
-    "items": [],
-    "fields": []
+    "fields": [
+      {
+        "name": "Name",
+        "type": "text"
+      },
+      {
+        "name": "Qty",
+        "type": "integer"
+      },
+      {
+        "name": "List",
+        "type": "combo"
+      },
+      {
+        "name": "Yes",
+        "type": "checkbox"
+      }
+    ]
   }
 ]

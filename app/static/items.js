@@ -41,20 +41,17 @@ async function renderFields() {
     form.innerHTML = '';
     const hobbyId = getHobbyId();
     for (const field of fields) {
-        let input = '';
         let options = [];
+        const row = document.createElement('div');
+        row.className = 'field-row';
+        const label = document.createElement('label');
+        label.textContent = `${field.name}:`;
+        row.appendChild(label);
         if (field.type === 'combo') {
             try {
                 const res = await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.name)}/options`);
                 options = await res.json();
             } catch {}
-        }
-        const row = document.createElement('div');
-        row.className = 'field-row';
-        if (field.type === 'combo') {
-            // Create label and button container
-            const label = document.createElement('label');
-            label.textContent = `${field.name}:`;
             const addBtn = document.createElement('button');
             addBtn.type = 'button';
             addBtn.textContent = 'Add Option';
@@ -70,12 +67,7 @@ async function renderFields() {
                     await renderFields();
                 }
             };
-            // Label and button side by side
-            const labelBtnContainer = document.createElement('span');
-            labelBtnContainer.appendChild(label);
-            labelBtnContainer.appendChild(addBtn);
-            row.appendChild(labelBtnContainer);
-            // Add the select element as a DOM node
+            row.appendChild(addBtn);
             const select = document.createElement('select');
             select.name = field.name;
             for (const opt of options) {
@@ -86,14 +78,22 @@ async function renderFields() {
             }
             row.appendChild(select);
         } else if (field.type === 'text') {
-            input = `<input type='text' name='${field.name}' placeholder='${field.name}' />`;
-            row.innerHTML = `<label>${field.name}:</label> ${input}`;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = field.name;
+            input.placeholder = field.name;
+            row.appendChild(input);
         } else if (field.type === 'integer') {
-            input = `<input type='number' name='${field.name}' placeholder='${field.name}' />`;
-            row.innerHTML = `<label>${field.name}:</label> ${input}`;
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.name = field.name;
+            input.placeholder = field.name;
+            row.appendChild(input);
         } else if (field.type === 'checkbox') {
-            input = `<input type='checkbox' name='${field.name}' />`;
-            row.innerHTML = `<label>${field.name}:</label> ${input}`;
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.name = field.name;
+            row.appendChild(input);
         }
         form.appendChild(row);
     }
@@ -124,21 +124,24 @@ window.editItem = function(idx) {
     const hobbyId = getHobbyId();
     fetch(`/config/hobbies/${hobbyId}/items`)
         .then(res => res.json())
-        .then(items => {
+        .then(async items => {
             const item = items[idx];
-            const fields = loadFieldConfig();
-            let newItem = {};
+            const fields = await loadFieldConfig();
+            const form = document.getElementById('itemFields');
             for (const field of fields) {
-                let val = prompt(`Edit ${field.name}:`, item[field.name]);
-                if (field.type === 'checkbox') val = val === 'true' || val === true;
-                if (field.type === 'integer') val = val ? parseInt(val) : '';
-                newItem[field.name] = val;
+                if (field.type === 'combo') {
+                    const select = form.querySelector(`select[name='${field.name}']`);
+                    if (select) select.value = item[field.name] || '';
+                } else if (field.type === 'checkbox') {
+                    const input = form.querySelector(`input[name='${field.name}']`);
+                    if (input) input.checked = !!item[field.name];
+                } else {
+                    const input = form.querySelector(`input[name='${field.name}']`);
+                    if (input) input.value = item[field.name] || '';
+                }
             }
-            fetch(`/config/hobbies/${hobbyId}/items/${idx}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newItem)
-            }).then(renderItemList);
+            window.editingItemIndex = idx;
+            document.getElementById('saveItemBtn').textContent = 'Update Item';
         });
 };
 
@@ -212,13 +215,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             item[field.name] = val;
         }
-        await fetch(`/config/hobbies/${hobbyId}/items`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(item)
-        });
-        await renderItemList();
-        await renderFields();
+        if (window.editingItemIndex !== null) {
+            // Update existing item
+            await fetch(`/config/hobbies/${hobbyId}/items/${window.editingItemIndex}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(item)
+            });
+            window.editingItemIndex = null;
+            document.getElementById('saveItemBtn').textContent = 'Save Item';
+        } else {
+            // Add new item
+            await fetch(`/config/hobbies/${hobbyId}/items`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(item)
+            });
+        }
+    await renderFields();
+    await renderItemList();
+    if (form.reset) form.reset();
     };
 
     document.getElementById('closeConfig').onclick = function() {
