@@ -16,3 +16,4 @@ test('Add Slings and Knitting', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Hobby Name' }).fill('Slingshot');
   await page.getByRole('button', { name: 'Add Hobby' }).click();
 });
+
