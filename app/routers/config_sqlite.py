@@ -14,7 +14,6 @@ def get_db():
     finally:
         db.close()
 
-# Hobbies
 @router.get("/hobbies")
 def list_hobbies(db: Session = Depends(get_db)):
     return db.query(Hobby).all()
@@ -26,6 +25,28 @@ def add_hobby(data: dict, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(hobby)
     return hobby
+
+
+# Edit Hobby
+@router.put("/hobbies/{hobby_id}")
+def edit_hobby(hobby_id: str, data: dict, db: Session = Depends(get_db)):
+    hobby = db.query(Hobby).filter(Hobby.id == hobby_id).first()
+    if not hobby:
+        raise HTTPException(status_code=404, detail="Hobby not found")
+    hobby.name = data.get("name", hobby.name)
+    db.commit()
+    db.refresh(hobby)
+    return hobby
+
+# Delete Hobby
+@router.delete("/hobbies/{hobby_id}")
+def delete_hobby(hobby_id: str, db: Session = Depends(get_db)):
+    hobby = db.query(Hobby).filter(Hobby.id == hobby_id).first()
+    if not hobby:
+        raise HTTPException(status_code=404, detail="Hobby not found")
+    db.delete(hobby)
+    db.commit()
+    return {"detail": "Hobby deleted"}
 
 # Fields
 @router.get("/hobbies/{hobby_id}/fields")
