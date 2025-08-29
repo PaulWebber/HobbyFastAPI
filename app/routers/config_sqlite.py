@@ -78,13 +78,18 @@ def add_item(hobby_id: str, item: dict, db: Session = Depends(get_db)):
     db.commit()
     return new_item
 
-# Combo Options
+
+# Combo Options (use field.id, not field.name)
 @router.get("/hobbies/{hobby_id}/fields/{field_id}/options")
 def get_combo_options(hobby_id: str, field_id: str, db: Session = Depends(get_db)):
     return db.query(ComboOption).filter(ComboOption.field_id == field_id).all()
 
 @router.post("/hobbies/{hobby_id}/fields/{field_id}/options")
 def add_combo_option(hobby_id: str, field_id: str, value: str = Body(...), db: Session = Depends(get_db)):
+    # Ensure field_id is a valid field.id
+    field = db.query(Field).filter(Field.id == field_id, Field.hobby_id == hobby_id).first()
+    if not field:
+        raise HTTPException(status_code=404, detail="Field not found")
     option = ComboOption(id=str(uuid4()), field_id=field_id, value=value)
     db.add(option)
     db.commit()
