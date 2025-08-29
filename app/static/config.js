@@ -25,7 +25,18 @@ function generateUUID() {
 
 document.getElementById('addHobbyForm').onsubmit = async function(e) {
     e.preventDefault();
-    const name = document.getElementById('hobbyName').value;
+    const input = document.getElementById('hobbyName');
+    const name = input.value;
+    // Fetch current hobbies and check for duplicates (case-insensitive)
+    const res = await fetch('/config/hobbies');
+    const hobbies = await res.json();
+    const exists = hobbies.some(h => h.name.toUpperCase() === name.toUpperCase());
+    if (exists) {
+        input.setCustomValidity('This hobby already exists.');
+        input.reportValidity();
+        setTimeout(() => input.setCustomValidity(''), 2000);
+        return;
+    }
     const id = generateUUID();
     await fetch('/config/hobbies', {
         method: 'POST',
