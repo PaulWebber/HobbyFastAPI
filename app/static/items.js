@@ -199,6 +199,7 @@ function closeEditFieldModal() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    renderFields();
 
     document.getElementById('saveItemBtn').onclick = async function() {
         const form = document.getElementById('itemFields');
