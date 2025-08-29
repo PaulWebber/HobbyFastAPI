@@ -49,7 +49,7 @@ async function renderFields() {
         row.appendChild(label);
         if (field.type === 'combo') {
             try {
-                const res = await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.name)}/options`);
+                const res = await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.id)}/options`);
                 options = await res.json();
             } catch {}
             const addBtn = document.createElement('button');
@@ -59,7 +59,7 @@ async function renderFields() {
             addBtn.onclick = async function() {
                 const newVal = prompt('Enter new option for ' + field.name + ':');
                 if (newVal) {
-                    await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.name)}/options`, {
+                    await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.id)}/options`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(newVal)
@@ -69,11 +69,16 @@ async function renderFields() {
             };
             row.appendChild(addBtn);
             const select = document.createElement('select');
-            select.name = field.name;
+            select.name = field.id;
             for (const opt of options) {
                 const option = document.createElement('option');
-                option.value = opt;
-                option.textContent = opt;
+                if (typeof opt === 'object' && opt !== null && 'id' in opt && 'value' in opt) {
+                    option.value = opt.id;
+                    option.textContent = opt.value;
+                } else {
+                    option.value = opt;
+                    option.textContent = opt;
+                }
                 select.appendChild(option);
             }
             row.appendChild(select);
@@ -130,8 +135,8 @@ window.editItem = function(idx) {
             const form = document.getElementById('itemFields');
             for (const field of fields) {
                 if (field.type === 'combo') {
-                    const select = form.querySelector(`select[name='${field.name}']`);
-                    if (select) select.value = item[field.name] || '';
+                    const select = form.querySelector(`select[name='${field.id}']`);
+                    if (select) select.value = item[field.id] || '';
                 } else if (field.type === 'checkbox') {
                     const input = form.querySelector(`input[name='${field.name}']`);
                     if (input) input.checked = !!item[field.name];
@@ -194,6 +199,7 @@ function closeEditFieldModal() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    renderFields();
 
     document.getElementById('saveItemBtn').onclick = async function() {
         const form = document.getElementById('itemFields');
@@ -203,17 +209,19 @@ document.addEventListener('DOMContentLoaded', function() {
         for (const field of fields) {
             let val;
             if (field.type === 'combo') {
-                const select = form.querySelector(`select[name='${field.name}']`);
+                const select = form.querySelector(`select[name='${field.id}']`);
                 val = select ? select.value : '';
+                item[field.id] = val;
             } else if (field.type === 'checkbox') {
                 const input = form.querySelector(`input[name='${field.name}']`);
                 val = input ? input.checked : false;
+                item[field.name] = val;
             } else {
                 const input = form.querySelector(`input[name='${field.name}']`);
                 val = input ? input.value : '';
                 if (field.type === 'integer') val = val ? parseInt(val) : '';
+                item[field.name] = val;
             }
-            item[field.name] = val;
         }
         console.log('DEBUG: hobbyId', hobbyId);
         console.log('DEBUG: item to save', item);
