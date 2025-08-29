@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 import os
 import logging
 
-from app.routers import root, config
+from app.routers import root, config_sqlite
 
 
 
@@ -28,7 +28,7 @@ app = FastAPI()
 
 
 app.include_router(root.router)
-app.include_router(config.router)
+app.include_router(config_sqlite.router)
 
 # Mount static files
 STATIC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "app", "static"))
