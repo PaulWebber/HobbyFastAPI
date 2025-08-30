@@ -1,9 +1,41 @@
 // combo_options.js
 // Handles the Combo Option management page
 
+
 function getQueryParam(name) {
     const url = new URL(window.location.href);
     return url.searchParams.get(name);
+}
+
+function showModal({title, value, input=false, onConfirm, onCancel, confirmText='OK', cancelText='Cancel'}) {
+    const overlay = document.getElementById('modalOverlay');
+    const dialog = document.getElementById('modalDialog');
+    document.getElementById('modalTitle').textContent = title;
+    const inputBox = document.getElementById('modalInput');
+    inputBox.style.display = input ? '' : 'none';
+    inputBox.value = value || '';
+    const btns = document.getElementById('modalButtons');
+    btns.innerHTML = '';
+    if (onConfirm) {
+        const ok = document.createElement('button');
+        ok.textContent = confirmText;
+        ok.onclick = () => {
+            overlay.style.display = 'none';
+            onConfirm(input ? inputBox.value : undefined);
+        };
+        btns.appendChild(ok);
+    }
+    if (onCancel) {
+        const cancel = document.createElement('button');
+        cancel.textContent = cancelText;
+        cancel.onclick = () => {
+            overlay.style.display = 'none';
+            onCancel();
+        };
+        btns.appendChild(cancel);
+    }
+    overlay.style.display = 'flex';
+    if (input) inputBox.focus();
 }
 
 async function loadOptions(hobbyId, fieldId) {
@@ -27,26 +59,42 @@ async function renderOptions() {
         row.appendChild(span);
         const editBtn = document.createElement('button');
         editBtn.textContent = 'Edit';
-        editBtn.onclick = async () => {
-            const newVal = prompt('Edit option:', span.textContent);
-            if (newVal && newVal !== span.textContent) {
-                // Implement edit endpoint if needed
-                await fetch(`/config/hobbies/${hobbyId}/fields/${fieldId}/options/${opt.id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ value: newVal })
-                });
-                await renderOptions();
-            }
+        editBtn.onclick = () => {
+            showModal({
+                title: 'Edit option',
+                value: span.textContent,
+                input: true,
+                confirmText: 'Save',
+                cancelText: 'Cancel',
+                onConfirm: async (newVal) => {
+                    if (newVal && newVal !== span.textContent) {
+                        await fetch(`/config/hobbies/${hobbyId}/fields/${fieldId}/options/${opt.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ value: newVal })
+                        });
+                        await renderOptions();
+                    }
+                },
+                onCancel: () => {}
+            });
         };
         row.appendChild(editBtn);
         const delBtn = document.createElement('button');
         delBtn.textContent = 'Delete';
-        delBtn.onclick = async () => {
-            if (confirm('Delete this option?')) {
-                await fetch(`/config/hobbies/${hobbyId}/fields/${fieldId}/options/${opt.id}`, { method: 'DELETE' });
-                await renderOptions();
-            }
+        delBtn.onclick = () => {
+            showModal({
+                title: 'Delete this option?',
+                value: '',
+                input: false,
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+                onConfirm: async () => {
+                    await fetch(`/config/hobbies/${hobbyId}/fields/${fieldId}/options/${opt.id}`, { method: 'DELETE' });
+                    await renderOptions();
+                },
+                onCancel: () => {}
+            });
         };
         row.appendChild(delBtn);
         list.appendChild(row);

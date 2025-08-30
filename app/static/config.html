@@ -16,6 +16,13 @@
         <h2>Hobbies</h2>
         <ul id="hobbyList"></ul>
     </div>
-    <script src="/static/config.js"></script>
+        <div id="modalOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:1000;align-items:center;justify-content:center;">
+            <div id="modalDialog" style="background:#fff;padding:24px 16px;border-radius:8px;min-width:300px;max-width:90vw;box-shadow:0 2px 16px #0002;">
+                <div id="modalTitle" style="font-weight:bold;margin-bottom:12px;"></div>
+                <input type="text" id="modalInput" style="width:100%;margin-bottom:12px;display:none;">
+                <div id="modalButtons"></div>
+            </div>
+        </div>
+        <script src="/static/config.js"></script>
 </body>
 </html>

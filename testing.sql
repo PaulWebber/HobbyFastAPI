@@ -21,3 +21,8 @@ left join field f on h.id = f.hobby_id;
 select h.name, f.name, f.type
 from hobby h
 left join field f on h.id = f.hobby_id;
+
+--update combo_option
+update combo_option
+set id = 'New Value'
+where id = '1fca5757-fd1b-4d8d-86e0-e13dccc1601a';

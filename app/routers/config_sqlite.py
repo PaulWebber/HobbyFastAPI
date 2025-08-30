@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
@@ -6,6 +7,7 @@ from typing import List
 from uuid import uuid4
 
 router = APIRouter(prefix="/config", tags=["Config"])
+
 
 def get_db():
     db = SessionLocal()

@@ -1,3 +1,45 @@
+// Modal dialog utility
+function showModal({title, value, input=false, onConfirm, onCancel, confirmText='OK', cancelText='Cancel'}) {
+    let overlay = document.getElementById('modalOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'modalOverlay';
+        overlay.style = 'display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:1000;align-items:center;justify-content:center;';
+        overlay.innerHTML = `<div id="modalDialog" style="background:#fff;padding:24px 16px;border-radius:8px;min-width:300px;max-width:90vw;box-shadow:0 2px 16px #0002;">
+            <div id="modalTitle" style="font-weight:bold;margin-bottom:12px;"></div>
+            <input type="text" id="modalInput" style="width:100%;margin-bottom:12px;display:none;">
+            <div id="modalButtons"></div>
+        </div>`;
+        document.body.appendChild(overlay);
+    }
+    const dialog = document.getElementById('modalDialog');
+    document.getElementById('modalTitle').textContent = title;
+    const inputBox = document.getElementById('modalInput');
+    inputBox.style.display = input ? '' : 'none';
+    inputBox.value = value || '';
+    const btns = document.getElementById('modalButtons');
+    btns.innerHTML = '';
+    if (onConfirm) {
+        const ok = document.createElement('button');
+        ok.textContent = confirmText;
+        ok.onclick = () => {
+            overlay.style.display = 'none';
+            onConfirm(input ? inputBox.value : undefined);
+        };
+        btns.appendChild(ok);
+    }
+    if (onCancel) {
+        const cancel = document.createElement('button');
+        cancel.textContent = cancelText;
+        cancel.onclick = () => {
+            overlay.style.display = 'none';
+            onCancel();
+        };
+        btns.appendChild(cancel);
+    }
+    overlay.style.display = 'flex';
+    if (input) inputBox.focus();
+}
 // items.js
 // Handles the Hobby Item page field config UI and dynamic form rendering
 
@@ -112,7 +154,7 @@ async function renderItemList() {
             <span>${Object.entries(item).map(([k,v]) => `<b>${k}</b>: ${v}`).join(' | ')}</span>
             <span class="actions">
                 <button onclick="editItem(${idx})">Edit</button>
-                <button onclick="deleteItem(${idx})">Delete</button>
+                <button onclick="deleteItem('${item.id}')">Delete</button>
             </span>
         </div>`
     ).join('');
@@ -143,12 +185,20 @@ window.editItem = function(idx) {
         });
 };
 
-window.deleteItem = function(idx) {
+window.deleteItem = function(itemId) {
     const hobbyId = getHobbyId();
-    if (confirm('Delete this item?')) {
-        fetch(`/config/hobbies/${hobbyId}/items/${idx}`, { method: 'DELETE' })
-            .then(renderItemList);
-    }
+    showModal({
+        title: 'Delete this item?',
+        value: '',
+        input: false,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+            await fetch(`/config/hobbies/${hobbyId}/items/${itemId}`, { method: 'DELETE' });
+            renderItemList();
+        },
+        onCancel: () => {}
+    });
 };
 
 function openConfigModal() {
