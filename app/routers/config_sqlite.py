@@ -66,7 +66,27 @@ def set_fields(hobby_id: str, fields: List[dict], db: Session = Depends(get_db))
 # Items
 @router.get("/hobbies/{hobby_id}/items")
 def get_items(hobby_id: str, db: Session = Depends(get_db)):
-    return db.query(Item).filter(Item.hobby_id == hobby_id).all()
+    items = db.query(Item).filter(Item.hobby_id == hobby_id).all()
+    fields = db.query(Field).filter(Field.hobby_id == hobby_id).all()
+    field_map = {f.id: f.name for f in fields}
+    result = []
+    for item in items:
+        item_dict = { 'id': item.id }
+        # Map field values by field name
+        for val in item.values:
+            fname = field_map.get(val.field_id, val.field_id)
+            # Prefer correct type
+            if val.value_text is not None:
+                value = val.value_text
+            elif val.value_int is not None:
+                value = val.value_int
+            elif val.value_bool is not None:
+                value = val.value_bool
+            else:
+                value = None
+            item_dict[fname] = value
+        result.append(item_dict)
+    return result
 
 @router.post("/hobbies/{hobby_id}/items")
 def add_item(hobby_id: str, item: dict, db: Session = Depends(get_db)):

@@ -149,15 +149,17 @@ async function renderItemList() {
         div.innerHTML = '<em>No items yet.</em>';
         return;
     }
-    div.innerHTML = '<h3>Items</h3>' + items.map((item, idx) =>
-        `<div class='item-row'>
-            <span>${Object.entries(item).map(([k,v]) => `<b>${k}</b>: ${v}`).join(' | ')}</span>
+    // Only show user fields (not id)
+    div.innerHTML = '<h3>Items</h3>' + items.map((item, idx) => {
+        const fieldEntries = Object.entries(item).filter(([k]) => k !== 'id');
+        return `<div class='item-row'>
+            <span>${fieldEntries.map(([k,v]) => `<b>${k}</b>: ${v}`).join(' | ')}</span>
             <span class="actions">
                 <button onclick="editItem(${idx})">Edit</button>
                 <button onclick="deleteItem('${item.id}')">Delete</button>
             </span>
-        </div>`
-    ).join('');
+        </div>`;
+    }).join('');
 }
 
 window.editItem = function(idx) {
