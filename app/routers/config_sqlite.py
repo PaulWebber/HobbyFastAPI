@@ -68,22 +68,31 @@ def set_fields(hobby_id: str, fields: List[dict], db: Session = Depends(get_db))
 def get_items(hobby_id: str, db: Session = Depends(get_db)):
     items = db.query(Item).filter(Item.hobby_id == hobby_id).all()
     fields = db.query(Field).filter(Field.hobby_id == hobby_id).all()
-    field_map = {f.id: f.name for f in fields}
+    field_map = {f.id: (f.name, f.type) for f in fields}
+    # Preload all combo options for this hobby's fields
+    combo_options = db.query(ComboOption).filter(ComboOption.field_id.in_([f.id for f in fields if f.type == 'combo'])).all()
+    combo_map = {opt.id: opt.value for opt in combo_options}
     result = []
     for item in items:
         item_dict = { 'id': item.id }
-        # Map field values by field name
         for val in item.values:
-            fname = field_map.get(val.field_id, val.field_id)
-            # Prefer correct type
-            if val.value_text is not None:
+            fname, ftype = field_map.get(val.field_id, (val.field_id, None))
+            value = None
+            if ftype == 'combo':
+                # Try combo_option_id first
+                if val.combo_option_id and val.combo_option_id in combo_map:
+                    value = combo_map[val.combo_option_id]
+                # If value_text looks like a UUID and matches a combo option, use its value
+                elif val.value_text and val.value_text in combo_map:
+                    value = combo_map[val.value_text]
+                else:
+                    value = val.value_text or val.combo_option_id
+            elif val.value_text is not None:
                 value = val.value_text
             elif val.value_int is not None:
                 value = val.value_int
             elif val.value_bool is not None:
                 value = val.value_bool
-            else:
-                value = None
             item_dict[fname] = value
         result.append(item_dict)
     return result
