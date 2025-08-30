@@ -56,16 +56,9 @@ async function renderFields() {
             addBtn.type = 'button';
             addBtn.textContent = 'Add Option';
             addBtn.style.marginLeft = '8px';
-            addBtn.onclick = async function() {
-                const newVal = prompt('Enter new option for ' + field.name + ':');
-                if (newVal) {
-                    await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.id)}/options`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(newVal)
-                    });
-                    await renderFields();
-                }
+            addBtn.onclick = function() {
+                // Open combo_options.html in a new page with hobby, field, and fieldName as query params
+                window.location.href = `/static/combo_options.html?hobby=${encodeURIComponent(hobbyId)}&field=${encodeURIComponent(field.id)}&fieldName=${encodeURIComponent(field.name)}`;
             };
             row.appendChild(addBtn);
             const select = document.createElement('select');
