@@ -59,6 +59,9 @@ async function renderFields() {
             } catch {}
             const select = document.createElement('select');
             select.name = field.id;
+            select.style.width = '100px'; // Match other fields
+            select.style.boxSizing = 'border-box';
+            select.style.height = '2em'; // Match height of other fields
             for (const opt of options) {
                 const option = document.createElement('option');
                 if (typeof opt === 'object' && opt !== null && 'id' in opt && 'value' in opt) {

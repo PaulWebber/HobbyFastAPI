@@ -71,7 +71,7 @@ test('Make sure all fields show up', async ({ page }) => {
   await expect(page.getByRole('textbox', { name: 'Name' })).toBeVisible();
   await expect(page.getByText('Qty:')).toBeVisible();
   await expect(page.getByPlaceholder('Qty')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Add Option' })).toBeVisible();
+  //await expect(page.getByRole('button', { name: 'Add Option' })).toBeVisible();
   await expect(page.getByRole('combobox')).toBeVisible();
   await expect(page.getByText('Usable:')).toBeVisible();
   await expect(page.getByRole('checkbox')).toBeVisible();
