@@ -57,17 +57,6 @@ async function renderFields() {
                 const res = await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.id)}/options`);
                 options = await res.json();
             } catch {}
-            const addBtn = document.createElement('button');
-            addBtn.type = 'button';
-            addBtn.textContent = 'Add Option';
-            addBtn.style.marginLeft = '8px';
-            addBtn.onclick = function() {
-                window._addOptionFieldId = field.id;
-                document.getElementById('addOptionInput').value = '';
-                document.getElementById('addOptionModal').style.display = 'block';
-                document.getElementById('addOptionInput').focus();
-            };
-            row.appendChild(addBtn);
             const select = document.createElement('select');
             select.name = field.id;
             for (const opt of options) {
@@ -81,7 +70,31 @@ async function renderFields() {
                 }
                 select.appendChild(option);
             }
-            row.appendChild(select);
+            // Wrap select and button in a flex container
+            const comboWrap = document.createElement('span');
+            comboWrap.style.display = 'inline-flex';
+            comboWrap.style.alignItems = 'center';
+            comboWrap.appendChild(select);
+            const addBtn = document.createElement('button');
+            addBtn.type = 'button';
+            addBtn.textContent = '+';
+            addBtn.title = 'Add Option';
+            addBtn.style.marginLeft = '8px';
+            addBtn.style.fontWeight = 'bold';
+            addBtn.style.fontSize = '1.1em';
+            addBtn.style.height = '2em';
+            addBtn.style.width = '2em';
+            addBtn.style.padding = '0';
+            addBtn.style.lineHeight = '1em';
+            addBtn.onclick = function() {
+                window._addOptionFieldId = field.id;
+                document.getElementById('addOptionInput').value = '';
+                document.getElementById('addOptionModal').style.display = 'block';
+                document.getElementById('addOptionInput').focus();
+            };
+            comboWrap.appendChild(addBtn);
+            row.appendChild(label);
+            row.appendChild(comboWrap);
         } else if (field.type === 'text') {
             const input = document.createElement('input');
             input.type = 'text';
