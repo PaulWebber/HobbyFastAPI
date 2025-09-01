@@ -32,9 +32,7 @@ document.getElementById('addHobbyForm').onsubmit = async function(e) {
     const hobbies = await res.json();
     const exists = hobbies.some(h => h.name.toUpperCase() === name.toUpperCase());
     if (exists) {
-        input.setCustomValidity('This hobby already exists.');
-        input.reportValidity();
-        setTimeout(() => input.setCustomValidity(''), 2000);
+        showToast('This hobby already exists.');
         return;
     }
     const id = generateUUID();
@@ -47,55 +45,110 @@ document.getElementById('addHobbyForm').onsubmit = async function(e) {
     fetchHobbies();
 };
 
+let _editHobbyId = null;
+let _editHobbyOldName = '';
 window.editHobby = function(id, oldName) {
-    showModal({
-        title: 'Edit hobby name',
-        value: oldName,
-        input: true,
-        confirmText: 'Save',
-        cancelText: 'Cancel',
-        onConfirm: async (name) => {
-            if (name) {
-                try {
-                    const res = await fetch(`/config/hobbies/${id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id, name })
-                    });
-                    if (!res.ok) {
-                        const data = await res.json();
-                        if (data.detail && data.detail.includes('already exists')) {
-                            // Find the modal input and set validity
-                            const inputBox = document.getElementById('modalInput');
-                            if (inputBox) {
-                                inputBox.setCustomValidity('Cannot rename because that Hobby already exists.');
-                                inputBox.reportValidity();
-                                setTimeout(() => inputBox.setCustomValidity(''), 2000);
-                            }
-                            return;
-                        }
-                    }
-                    fetchHobbies();
-                } catch (e) {
-                    showModal({
-                        title: 'Error',
-                        value: 'An error occurred.',
-                        input: false,
-                        confirmText: 'OK',
-                        onConfirm: () => {}
-                    });
-                }
-            }
-        },
-        onCancel: () => {}
-    });
+    _editHobbyId = id;
+    _editHobbyOldName = oldName;
+    const modal = document.getElementById('editHobbyModal');
+    const input = document.getElementById('editHobbyInput');
+    input.value = oldName;
+    modal.style.display = 'block';
+    input.focus();
 };
 
-window.deleteHobby = function(id) {
-    if (confirm('Delete this hobby?')) {
-        fetch(`/config/hobbies/${id}`, { method: 'DELETE' })
-            .then(fetchHobbies);
+document.addEventListener('DOMContentLoaded', function() {
+    // ...existing code...
+    const modal = document.getElementById('editHobbyModal');
+    const input = document.getElementById('editHobbyInput');
+    const saveBtn = document.getElementById('saveEditHobbyBtn');
+    const cancelBtn = document.getElementById('cancelEditHobbyBtn');
+    if (saveBtn && input && modal) {
+        saveBtn.onclick = async function() {
+            const name = input.value.trim();
+            if (!name || name === _editHobbyOldName) {
+                modal.style.display = 'none';
+                return;
+            }
+            try {
+                const res = await fetch(`/config/hobbies/${_editHobbyId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: _editHobbyId, name })
+                });
+                if (!res.ok) {
+                    const data = await res.json();
+                    if (data.detail && data.detail.includes('already exists')) {
+                        showToast('Cannot rename because that Hobby already exists.');
+                        return;
+                    } else {
+                        showToast('Failed to rename hobby.');
+                        return;
+                    }
+                }
+                modal.style.display = 'none';
+                fetchHobbies();
+            } catch (e) {
+                showToast('An error occurred.');
+            }
+        };
     }
+    if (cancelBtn && modal) {
+        cancelBtn.onclick = function() {
+            modal.style.display = 'none';
+        };
+    }
+});
+
+let _deleteHobbyId = null;
+let _deleteHobbyName = '';
+window.deleteHobby = function(id) {
+    // Find hobby name for modal
+    const hobby = Array.from(document.querySelectorAll('#hobbyList .hobby-link'))
+        .map(btn => ({
+            id: btn.getAttribute('onclick').match(/\/(?:items|fields)\/(.*?)'/)?.[1],
+            name: btn.textContent
+        }))
+        .find(h => h.id === id);
+    _deleteHobbyId = id;
+    _deleteHobbyName = hobby ? hobby.name : '';
+    const modal = document.getElementById('deleteHobbyModal');
+    const title = document.getElementById('deleteHobbyModalTitle');
+    title.textContent = `Are you sure you want to delete ${_deleteHobbyName}?`;
+    modal.style.display = 'block';
 };
+
+document.addEventListener('DOMContentLoaded', function() {
+    // ...existing code...
+    const deleteModal = document.getElementById('deleteHobbyModal');
+    const confirmBtn = document.getElementById('confirmDeleteHobbyBtn');
+    const cancelBtn = document.getElementById('cancelDeleteHobbyBtn');
+    if (confirmBtn && deleteModal) {
+        confirmBtn.onclick = async function() {
+            if (_deleteHobbyId) {
+                try {
+                    const res = await fetch(`/config/hobbies/${_deleteHobbyId}`, { method: 'DELETE' });
+                    if (!res.ok) {
+                        showToast('Failed to delete hobby.');
+                    } else {
+                        fetchHobbies();
+                    }
+                } catch {
+                    showToast('Failed to delete hobby.');
+                }
+            }
+            deleteModal.style.display = 'none';
+            _deleteHobbyId = null;
+            _deleteHobbyName = '';
+        };
+    }
+    if (cancelBtn && deleteModal) {
+        cancelBtn.onclick = function() {
+            deleteModal.style.display = 'none';
+            _deleteHobbyId = null;
+            _deleteHobbyName = '';
+        };
+    }
+});
 
 document.addEventListener('DOMContentLoaded', fetchHobbies);

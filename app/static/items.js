@@ -59,11 +59,24 @@ async function renderFields() {
             addBtn.onclick = async function() {
                 const newVal = prompt('Enter new option for ' + field.name + ':');
                 if (newVal) {
-                    await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.id)}/options`, {
+                    const resp = await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.id)}/options`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(newVal)
                     });
+                    if (!resp.ok) {
+                        try {
+                            const data = await resp.json();
+                            if (data.detail && data.detail.includes('already exists')) {
+                                showToast('That option already exists.');
+                            } else {
+                                showToast('Failed to add option.');
+                            }
+                        } catch {
+                            showToast('Failed to add option.');
+                        }
+                        return;
+                    }
                     await renderFields();
                 }
             };
@@ -154,7 +167,13 @@ window.deleteItem = function(idx) {
     const hobbyId = getHobbyId();
     if (confirm('Delete this item?')) {
         fetch(`/config/hobbies/${hobbyId}/items/${idx}`, { method: 'DELETE' })
-            .then(renderItemList);
+            .then(resp => {
+                if (!resp.ok) {
+                    showToast('Failed to delete item.');
+                } else {
+                    renderItemList();
+                }
+            });
     }
 };
 
@@ -189,13 +208,20 @@ function openEditFieldModal(idx, field) {
     editFieldIndex = idx;
     originalFieldName = field.name;
     originalFieldType = field.type;
-    document.getElementById('editFieldName').value = field.name;
-    document.getElementById('editFieldType').value = field.type;
-    document.getElementById('editFieldModal').style.display = 'block';
+    const modal = document.getElementById('editFieldModal');
+    const input = document.getElementById('editFieldName');
+    const select = document.getElementById('editFieldType');
+    input.value = field.name;
+    select.value = field.type;
+    modal.style.display = 'block';
+    input.focus();
 }
 
 function closeEditFieldModal() {
     document.getElementById('editFieldModal').style.display = 'none';
+    editFieldIndex = null;
+    originalFieldName = null;
+    originalFieldType = null;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -223,8 +249,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 item[field.name] = val;
             }
         }
-        console.log('DEBUG: hobbyId', hobbyId);
-        console.log('DEBUG: item to save', item);
         try {
             let response;
             if (typeof window.editingItemIndex === 'number' && window.editingItemIndex >= 0) {
@@ -245,13 +269,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 window.editingItemIndex = null;
             }
-            console.log('DEBUG: fetch response', response);
             if (!response.ok) {
-                const err = await response.text();
-                console.error('DEBUG: fetch error', err);
+                try {
+                    const data = await response.json();
+                    if (data.detail && data.detail.includes('already exists')) {
+                        showToast('Duplicate item or option.');
+                    } else {
+                        showToast('Failed to save item.');
+                    }
+                } catch {
+                    showToast('Failed to save item.');
+                }
             }
         } catch (e) {
-            console.error('DEBUG: exception during fetch', e);
+            showToast('Failed to save item.');
         }
         await renderFields();
         await renderItemList();
@@ -274,46 +305,51 @@ document.addEventListener('DOMContentLoaded', function() {
         await renderFieldsList();
         await renderFields();
     };
-    // ...existing code...
+
     document.getElementById('configBtn').onclick = function() {
         openConfigModal();
         renderFieldsList();
     };
-    document.getElementById('saveEditFieldBtn').onclick = async function() {
-        const newName = document.getElementById('editFieldName').value.trim();
-        const newType = document.getElementById('editFieldType').value;
-        if (!newName || !newType || editFieldIndex === null) return;
-        let fields = await loadFieldConfig();
-        const hobbyId = getHobbyId();
-        // If name or type changed, update combo_options.json if needed
-        const oldField = fields[editFieldIndex];
-        const wasCombo = oldField.type === 'combo';
-        const isCombo = newType === 'combo';
-        // Update field
-        fields[editFieldIndex] = { name: newName, type: newType };
-        await saveFieldConfig(fields);
-        // If combo field name changed, update combo_options.json key
-        if (wasCombo && (originalFieldName !== newName)) {
-            await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(originalFieldName)}/options`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ newName })
-            });
-        }
-        await renderFields();
-        await renderFieldsList();
-        closeEditFieldModal();
-        editFieldIndex = null;
-        originalFieldName = null;
-        originalFieldType = null;
-    };
 
-    document.getElementById('cancelEditFieldBtn').onclick = function() {
-        closeEditFieldModal();
-        editFieldIndex = null;
-        originalFieldName = null;
-        originalFieldType = null;
-    };
+    // Modal logic for editing fields
+    const modal = document.getElementById('editFieldModal');
+    const input = document.getElementById('editFieldName');
+    const select = document.getElementById('editFieldType');
+    const saveBtn = document.getElementById('saveEditFieldBtn');
+    const cancelBtn = document.getElementById('cancelEditFieldBtn');
+    if (saveBtn && input && select && modal) {
+        saveBtn.onclick = async function() {
+            const newName = input.value.trim();
+            const newType = select.value;
+            if (!newName || !newType || editFieldIndex === null) {
+                modal.style.display = 'none';
+                return;
+            }
+            let fields = await loadFieldConfig();
+            const hobbyId = getHobbyId();
+            const oldField = fields[editFieldIndex];
+            const wasCombo = oldField.type === 'combo';
+            // Update field
+            fields[editFieldIndex] = { name: newName, type: newType };
+            await saveFieldConfig(fields);
+            // If combo field name changed, update combo_options.json key
+            if (wasCombo && (originalFieldName !== newName)) {
+                await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(originalFieldName)}/options`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newName })
+                });
+            }
+            await renderFields();
+            await renderFieldsList();
+            closeEditFieldModal();
+        };
+    }
+    if (cancelBtn && modal) {
+        cancelBtn.onclick = function() {
+            closeEditFieldModal();
+        };
+    }
 });
 
 

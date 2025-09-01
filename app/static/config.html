@@ -1,3 +1,10 @@
+        <div id="deleteHobbyModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#0008;z-index:2000;">
+            <div style="background:#fffde7;max-width:350px;margin:15vh auto;padding:2em;border-radius:12px;box-shadow:0 4px 16px #0002;position:relative;">
+                <h3 id="deleteHobbyModalTitle">Are you sure you want to delete this hobby?</h3>
+                <button id="confirmDeleteHobbyBtn" type="button" style="width:100%;margin-bottom:0.5em;background:#c62828;color:#fff;">Yes</button>
+                <button id="cancelDeleteHobbyBtn" type="button" style="width:100%;">No</button>
+            </div>
+        </div>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +23,16 @@
         <h2>Hobbies</h2>
         <ul id="hobbyList"></ul>
     </div>
+        <div id="editHobbyModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#0008;z-index:2000;">
+            <div style="background:#fffde7;max-width:350px;margin:15vh auto;padding:2em;border-radius:12px;box-shadow:0 4px 16px #0002;position:relative;">
+                <h3>Edit Hobby Name</h3>
+                <input id="editHobbyInput" type="text" style="width:100%;margin-bottom:0.5em;" placeholder="Hobby Name">
+                <button id="saveEditHobbyBtn" type="button" style="width:100%;margin-bottom:0.5em;">Save</button>
+                <button id="cancelEditHobbyBtn" type="button" style="width:100%;">Cancel</button>
+            </div>
+        </div>
+        <div id="toast" style="display:none;position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#222;color:#fffbe6;padding:1em 2em;border-radius:8px;box-shadow:0 2px 16px #0006;z-index:9999;font-weight:bold;min-width:200px;text-align:center;"></div>
+    <script src="/static/toast.js"></script>
     <script src="/static/config.js"></script>
 </body>
 </html>

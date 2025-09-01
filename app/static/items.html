@@ -56,6 +56,22 @@
                 <button id="closeConfig" type="button" style="margin-top:1em;">Close</button>
             </div>
         </div>
-        <script src="/static/items.js"></script>
+                <div id="editFieldModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#0008;z-index:2000;">
+                    <div style="background:#fffde7;max-width:350px;margin:15vh auto;padding:2em;border-radius:12px;box-shadow:0 4px 16px #0002;position:relative;">
+                        <h3>Edit Field</h3>
+                        <input id="editFieldName" type="text" style="width:100%;margin-bottom:0.5em;" placeholder="Field Name">
+                        <select id="editFieldType" style="width:100%;margin-bottom:0.5em;">
+                            <option value="text">Text</option>
+                            <option value="integer">Integer</option>
+                            <option value="combo">Combo</option>
+                            <option value="checkbox">Check Box</option>
+                        </select>
+                        <button id="saveEditFieldBtn" type="button" style="width:100%;margin-bottom:0.5em;">Save</button>
+                        <button id="cancelEditFieldBtn" type="button" style="width:100%;">Cancel</button>
+                    </div>
+                </div>
+                <div id="toast" style="display:none;position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#222;color:#fffbe6;padding:1em 2em;border-radius:8px;box-shadow:0 2px 16px #0006;z-index:9999;font-weight:bold;min-width:200px;text-align:center;"></div>
+    <script src="/static/toast.js"></script>
+    <script src="/static/items.js"></script>
 </body>
 </html>
