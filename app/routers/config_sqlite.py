@@ -1,5 +1,7 @@
+
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 from app.database import SessionLocal
 from app.models import Hobby, Field, Item, ItemValue, ComboOption
 from typing import List
@@ -33,7 +35,12 @@ def edit_hobby(hobby_id: str, data: dict, db: Session = Depends(get_db)):
     hobby = db.query(Hobby).filter(Hobby.id == hobby_id).first()
     if not hobby:
         raise HTTPException(status_code=404, detail="Hobby not found")
-    hobby.name = data.get("name", hobby.name)
+    new_name = data.get("name", hobby.name)
+    # Prevent duplicate name (case-insensitive, except for itself)
+    exists = db.query(Hobby).filter(Hobby.id != hobby_id, Hobby.name.ilike(new_name)).first()
+    if exists:
+        raise HTTPException(status_code=400, detail="A hobby with this name already exists.")
+    hobby.name = new_name
     db.commit()
     db.refresh(hobby)
     return hobby
@@ -90,6 +97,14 @@ def add_combo_option(hobby_id: str, field_id: str, value: str = Body(...), db: S
     field = db.query(Field).filter(Field.id == field_id, Field.hobby_id == hobby_id).first()
     if not field:
         raise HTTPException(status_code=404, detail="Field not found")
+    # Prevent duplicate combo option value (strict case-insensitive)
+    normalized = value.strip().lower()
+    exists = db.query(ComboOption).filter(
+        ComboOption.field_id == field_id,
+        func.lower(func.trim(ComboOption.value)) == normalized
+    ).first()
+    if exists:
+        raise HTTPException(status_code=400, detail="This option already exists for this field.")
     option = ComboOption(id=str(uuid4()), field_id=field_id, value=value)
     db.add(option)
     db.commit()

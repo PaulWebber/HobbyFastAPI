@@ -48,14 +48,47 @@ document.getElementById('addHobbyForm').onsubmit = async function(e) {
 };
 
 window.editHobby = function(id, oldName) {
-    const name = prompt('Edit hobby name:', oldName);
-    if (name) {
-        fetch(`/config/hobbies/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, name })
-        }).then(fetchHobbies);
-    }
+    showModal({
+        title: 'Edit hobby name',
+        value: oldName,
+        input: true,
+        confirmText: 'Save',
+        cancelText: 'Cancel',
+        onConfirm: async (name) => {
+            if (name) {
+                try {
+                    const res = await fetch(`/config/hobbies/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id, name })
+                    });
+                    if (!res.ok) {
+                        const data = await res.json();
+                        if (data.detail && data.detail.includes('already exists')) {
+                            // Find the modal input and set validity
+                            const inputBox = document.getElementById('modalInput');
+                            if (inputBox) {
+                                inputBox.setCustomValidity('Cannot rename because that Hobby already exists.');
+                                inputBox.reportValidity();
+                                setTimeout(() => inputBox.setCustomValidity(''), 2000);
+                            }
+                            return;
+                        }
+                    }
+                    fetchHobbies();
+                } catch (e) {
+                    showModal({
+                        title: 'Error',
+                        value: 'An error occurred.',
+                        input: false,
+                        confirmText: 'OK',
+                        onConfirm: () => {}
+                    });
+                }
+            }
+        },
+        onCancel: () => {}
+    });
 };
 
 window.deleteHobby = function(id) {

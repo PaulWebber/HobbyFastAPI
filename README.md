@@ -27,6 +27,7 @@ A starter FastAPI web application.
 3. Try to generate a Android APK app
 4. Make sure Combo Boxes cannot have the same value. Maybe validate with UPPER()
 5. manual test, build PW suite
+6. Make sure Edit Hobby does not allow if the Hobby already exists.
 
 # Clean test
 A clean hobbies.json is
