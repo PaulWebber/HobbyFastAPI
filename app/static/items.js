@@ -37,9 +37,14 @@ async function saveFieldConfig(fields) {
 
 async function renderFields() {
     const fields = await loadFieldConfig();
+    console.log('renderFields: loaded fields', fields);
     const form = document.getElementById('itemFields');
     form.innerHTML = '';
     const hobbyId = getHobbyId();
+    if (!fields.length) {
+        form.innerHTML = '<em>No fields configured.</em>';
+        return;
+    }
     for (const field of fields) {
         let options = [];
         const row = document.createElement('div');
@@ -80,21 +85,22 @@ async function renderFields() {
         } else if (field.type === 'text') {
             const input = document.createElement('input');
             input.type = 'text';
-            input.name = field.name;
+            input.name = field.id;
             input.placeholder = field.name;
             row.appendChild(input);
         } else if (field.type === 'integer') {
             const input = document.createElement('input');
             input.type = 'number';
-            input.name = field.name;
+            input.name = field.id;
             input.placeholder = field.name;
             row.appendChild(input);
         } else if (field.type === 'checkbox') {
             const input = document.createElement('input');
             input.type = 'checkbox';
-            input.name = field.name;
+            input.name = field.id;
             row.appendChild(input);
-        }
+    }
+    form.appendChild(row);
     }
     await renderItemList();
 }
@@ -167,6 +173,34 @@ function closeEditFieldModal() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Save button for Edit Field modal
+    const saveEditFieldBtn = document.getElementById('saveEditFieldBtn');
+    if (saveEditFieldBtn) {
+        saveEditFieldBtn.onclick = async function() {
+            const name = document.getElementById('editFieldName').value.trim();
+            const type = document.getElementById('editFieldType').value;
+            if (!name || !type || editFieldIndex === null) return;
+            let fields = await loadFieldConfig();
+            // Prevent duplicate field names (case-insensitive)
+            if (fields.some((f, idx) => idx !== editFieldIndex && f.name.toLowerCase() === name.toLowerCase())) {
+                showToast('Duplicate field name.');
+                return;
+            }
+            fields[editFieldIndex] = { ...fields[editFieldIndex], name, type };
+            await saveFieldConfig(fields);
+            await renderFieldsList();
+            await renderFields();
+            closeEditFieldModal();
+        };
+    }
+
+    // Cancel button for Edit Field modal
+    const cancelEditFieldBtn = document.getElementById('cancelEditFieldBtn');
+    if (cancelEditFieldBtn) {
+        cancelEditFieldBtn.onclick = function() {
+            closeEditFieldModal();
+        };
+    }
     renderFields();
 
     document.getElementById('saveItemBtn').onclick = async function() {
@@ -181,14 +215,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 val = select ? select.value : '';
                 item[field.id] = val;
             } else if (field.type === 'checkbox') {
-                const input = form.querySelector(`input[name='${field.name}']`);
+                const input = form.querySelector(`input[name='${field.id}']`);
                 val = input ? input.checked : false;
-                item[field.name] = val;
+                item[field.id] = val;
             } else {
-                const input = form.querySelector(`input[name='${field.name}']`);
+                const input = form.querySelector(`input[name='${field.id}']`);
                 val = input ? input.value : '';
                 if (field.type === 'integer') val = val ? parseInt(val) : '';
-                item[field.name] = val;
+                item[field.id] = val;
             }
         }
         try {
@@ -247,48 +281,24 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('addFieldBtn').onclick = async function() {
         const name = document.getElementById('fieldName').value.trim();
         const type = document.getElementById('fieldType').value;
-        // Modal logic for adding combo options
-        const addOptionModal = document.getElementById('addOptionModal');
-        const addOptionInput = document.getElementById('addOptionInput');
-        const saveAddOptionBtn = document.getElementById('saveAddOptionBtn');
-        const cancelAddOptionBtn = document.getElementById('cancelAddOptionBtn');
-        if (saveAddOptionBtn && addOptionInput && addOptionModal) {
-            saveAddOptionBtn.onclick = async function() {
-                const value = addOptionInput.value.trim();
-                if (!value || !window._addOptionFieldId) {
-                    addOptionModal.style.display = 'none';
-                    return;
-                }
-                const hobbyId = getHobbyId();
-                const resp = await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(window._addOptionFieldId)}/options`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(value)
-                });
-                if (!resp.ok) {
-                    try {
-                        const data = await resp.json();
-                        if (data.detail && data.detail.includes('already exists')) {
-                            showToast('That option already exists.');
-                        } else {
-                            showToast('Failed to add option.');
-                        }
-                    } catch {
-                        showToast('Failed to add option.');
-                    }
-                    return;
-                }
-                addOptionModal.style.display = 'none';
-                await renderFields();
-            };
-        }
+        if (!name || !type) return;
+        // Always fetch the latest fields from backend before adding
+        let fields = await loadFieldConfig();
+        // Only send fields with id (existing), plus the new one (no id)
+        const newFields = [...fields, { name, type }];
+        await saveFieldConfig(newFields);
+        document.getElementById('fieldName').value = '';
+        document.getElementById('fieldType').value = '';
+        // After saving, reload the field list from backend to get correct UUIDs and all fields
+        await renderFieldsList();
+        await renderFields();
+        closeConfigModal();
+    }
 
-
-        if (cancelAddOptionBtn && addOptionModal) {
-            cancelAddOptionBtn.onclick = function() {
-                addOptionModal.style.display = 'none';
-            };
-        }
+    document.getElementById('cancelAddFieldBtn').onclick = function() {
+        document.getElementById('fieldName').value = '';
+        document.getElementById('fieldType').value = '';
+        closeConfigModal();
     }
 });
 
