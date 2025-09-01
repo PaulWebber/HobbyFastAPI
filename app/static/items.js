@@ -300,6 +300,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!name || !type) return;
         // Always fetch the latest fields from backend before adding
         let fields = await loadFieldConfig();
+        // Prevent duplicate field names (case-insensitive)
+        if (fields.some(f => f.name.toLowerCase() === name.toLowerCase())) {
+            showToast('Duplicate field name.');
+            return;
+        }
         // Only send fields with id (existing), plus the new one (no id)
         const newFields = [...fields, { name, type }];
         await saveFieldConfig(newFields);
