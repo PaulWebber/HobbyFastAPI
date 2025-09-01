@@ -48,3 +48,5 @@ test('Add Fields to Hobby', async ({ page }) => {
   await expect(page.getByText('MyCheck 1:')).toBeVisible();
   await expect(page.getByRole('checkbox')).toBeVisible();
 });
+
+// await expect(page.locator('input')).not.toHaveAttribute('disabled', '');

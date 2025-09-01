@@ -56,29 +56,11 @@ async function renderFields() {
             addBtn.type = 'button';
             addBtn.textContent = 'Add Option';
             addBtn.style.marginLeft = '8px';
-            addBtn.onclick = async function() {
-                const newVal = prompt('Enter new option for ' + field.name + ':');
-                if (newVal) {
-                    const resp = await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(field.id)}/options`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(newVal)
-                    });
-                    if (!resp.ok) {
-                        try {
-                            const data = await resp.json();
-                            if (data.detail && data.detail.includes('already exists')) {
-                                showToast('That option already exists.');
-                            } else {
-                                showToast('Failed to add option.');
-                            }
-                        } catch {
-                            showToast('Failed to add option.');
-                        }
-                        return;
-                    }
-                    await renderFields();
-                }
+            addBtn.onclick = function() {
+                window._addOptionFieldId = field.id;
+                document.getElementById('addOptionInput').value = '';
+                document.getElementById('addOptionModal').style.display = 'block';
+                document.getElementById('addOptionInput').focus();
             };
             row.appendChild(addBtn);
             const select = document.createElement('select');
@@ -113,7 +95,6 @@ async function renderFields() {
             input.name = field.name;
             row.appendChild(input);
         }
-        form.appendChild(row);
     }
     await renderItemList();
 }
@@ -137,45 +118,6 @@ async function renderItemList() {
         </div>`
     ).join('');
 }
-
-window.editItem = function(idx) {
-    const hobbyId = getHobbyId();
-    fetch(`/config/hobbies/${hobbyId}/items`)
-        .then(res => res.json())
-        .then(async items => {
-            const item = items[idx];
-            const fields = await loadFieldConfig();
-            const form = document.getElementById('itemFields');
-            for (const field of fields) {
-                if (field.type === 'combo') {
-                    const select = form.querySelector(`select[name='${field.id}']`);
-                    if (select) select.value = item[field.id] || '';
-                } else if (field.type === 'checkbox') {
-                    const input = form.querySelector(`input[name='${field.name}']`);
-                    if (input) input.checked = !!item[field.name];
-                } else {
-                    const input = form.querySelector(`input[name='${field.name}']`);
-                    if (input) input.value = item[field.name] || '';
-                }
-            }
-            window.editingItemIndex = idx;
-            document.getElementById('saveItemBtn').textContent = 'Update Item';
-        });
-};
-
-window.deleteItem = function(idx) {
-    const hobbyId = getHobbyId();
-    if (confirm('Delete this item?')) {
-        fetch(`/config/hobbies/${hobbyId}/items/${idx}`, { method: 'DELETE' })
-            .then(resp => {
-                if (!resp.ok) {
-                    showToast('Failed to delete item.');
-                } else {
-                    renderItemList();
-                }
-            });
-    }
-};
 
 function openConfigModal() {
     document.getElementById('configModal').style.display = 'block';
@@ -289,6 +231,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (form.reset) form.reset();
     };
 
+
+    const configBtn = document.getElementById('configBtn');
+    if (configBtn) {
+        configBtn.onclick = function() {
+            openConfigModal();
+            renderFieldsList();
+        };
+    }
+
     document.getElementById('closeConfig').onclick = function() {
         closeConfigModal();
     };
@@ -296,60 +247,51 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('addFieldBtn').onclick = async function() {
         const name = document.getElementById('fieldName').value.trim();
         const type = document.getElementById('fieldType').value;
-        if (!name || !type) return;
-        let fields = await loadFieldConfig();
-        fields.push({ name, type });
-        await saveFieldConfig(fields);
-        document.getElementById('fieldName').value = '';
-        document.getElementById('fieldType').value = '';
-        await renderFieldsList();
-        await renderFields();
-    };
-
-    document.getElementById('configBtn').onclick = function() {
-        openConfigModal();
-        renderFieldsList();
-    };
-
-    // Modal logic for editing fields
-    const modal = document.getElementById('editFieldModal');
-    const input = document.getElementById('editFieldName');
-    const select = document.getElementById('editFieldType');
-    const saveBtn = document.getElementById('saveEditFieldBtn');
-    const cancelBtn = document.getElementById('cancelEditFieldBtn');
-    if (saveBtn && input && select && modal) {
-        saveBtn.onclick = async function() {
-            const newName = input.value.trim();
-            const newType = select.value;
-            if (!newName || !newType || editFieldIndex === null) {
-                modal.style.display = 'none';
-                return;
-            }
-            let fields = await loadFieldConfig();
-            const hobbyId = getHobbyId();
-            const oldField = fields[editFieldIndex];
-            const wasCombo = oldField.type === 'combo';
-            // Update field
-            fields[editFieldIndex] = { name: newName, type: newType };
-            await saveFieldConfig(fields);
-            // If combo field name changed, update combo_options.json key
-            if (wasCombo && (originalFieldName !== newName)) {
-                await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(originalFieldName)}/options`, {
-                    method: 'PUT',
+        // Modal logic for adding combo options
+        const addOptionModal = document.getElementById('addOptionModal');
+        const addOptionInput = document.getElementById('addOptionInput');
+        const saveAddOptionBtn = document.getElementById('saveAddOptionBtn');
+        const cancelAddOptionBtn = document.getElementById('cancelAddOptionBtn');
+        if (saveAddOptionBtn && addOptionInput && addOptionModal) {
+            saveAddOptionBtn.onclick = async function() {
+                const value = addOptionInput.value.trim();
+                if (!value || !window._addOptionFieldId) {
+                    addOptionModal.style.display = 'none';
+                    return;
+                }
+                const hobbyId = getHobbyId();
+                const resp = await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(window._addOptionFieldId)}/options`, {
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ newName })
+                    body: JSON.stringify(value)
                 });
-            }
-            await renderFields();
-            await renderFieldsList();
-            closeEditFieldModal();
-        };
-    }
-    if (cancelBtn && modal) {
-        cancelBtn.onclick = function() {
-            closeEditFieldModal();
-        };
+                if (!resp.ok) {
+                    try {
+                        const data = await resp.json();
+                        if (data.detail && data.detail.includes('already exists')) {
+                            showToast('That option already exists.');
+                        } else {
+                            showToast('Failed to add option.');
+                        }
+                    } catch {
+                        showToast('Failed to add option.');
+                    }
+                    return;
+                }
+                addOptionModal.style.display = 'none';
+                await renderFields();
+            };
+        }
+
+
+        if (cancelAddOptionBtn && addOptionModal) {
+            cancelAddOptionBtn.onclick = function() {
+                addOptionModal.style.display = 'none';
+            };
+        }
     }
 });
+
+
 
 
