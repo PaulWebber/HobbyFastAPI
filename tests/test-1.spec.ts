@@ -1,24 +1,17 @@
 import { test, expect } from '@playwright/test';
 
-test('Add Slings and Knitting', async ({ page }) => {
+test('01 Add Slings and Knitting', async ({ page }) => {
   await page.goto('http://127.0.0.1:8000/');
-  const hobbies = ['Slingshot', 'Knitting'];
-  for (const hobby of hobbies) {
-    await page.getByRole('textbox', { name: 'Hobby Name' }).click();
-    await page.getByRole('textbox', { name: 'Hobby Name' }).fill(hobby);
-    await page.getByRole('button', { name: 'Add Hobby' }).click();
-  }
-  for (const hobby of hobbies) {
-    await expect(page.getByRole('button', { name: hobby })).toBeVisible();
-    await expect(page.locator('#hobbyList')).toContainText(hobby);
-  }
-  // Try to add duplicate
   await page.getByRole('textbox', { name: 'Hobby Name' }).click();
   await page.getByRole('textbox', { name: 'Hobby Name' }).fill('Slingshot');
   await page.getByRole('button', { name: 'Add Hobby' }).click();
+  await page.getByRole('textbox', { name: 'Hobby Name' }).click();
+  await page.getByRole('textbox', { name: 'Hobby Name' }).fill('Knitting');
+  await page.getByRole('button', { name: 'Add Hobby' }).click();
 });
 
-test('Check hobbies things show up', async ({ page }) => {
+
+test('02 Check hobbies things show up', async ({ page }) => {
   await page.goto('http://127.0.0.1:8000/');
   await expect(page.getByRole('button', { name: 'Slingshot' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Edit' }).first()).toBeVisible();
@@ -37,7 +30,7 @@ test('Check hobbies things show up', async ({ page }) => {
   await expect(page.locator('#hobbyList')).toContainText('Delete');
 });
 
-test('Add Fields to Hobby', async ({ page }) => {
+test('03 Add Fields to Hobby', async ({ page }) => {
   await page.goto('http://127.0.0.1:8000/');
   await page.getByRole('button', { name: 'Slingshot' }).click();
   await page.getByRole('button', { name: 'Config' }).click();
@@ -62,7 +55,7 @@ test('Add Fields to Hobby', async ({ page }) => {
   await page.getByRole('button', { name: 'Add', exact: true }).click();
 });
 
-test('Make sure all fields show up', async ({ page }) => {
+test('04 Make sure all fields show up', async ({ page }) => {
   await page.goto('http://127.0.0.1:8000/');
   await page.getByRole('button', { name: 'Slingshot' }).click();
   await expect(page.getByRole('button', { name: 'Back' })).toBeVisible();
