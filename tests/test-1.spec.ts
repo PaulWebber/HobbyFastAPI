@@ -2,12 +2,12 @@ import { test, expect } from '@playwright/test';
 
 test('01 Add Slings and Knitting', async ({ page }) => {
   await page.goto('http://127.0.0.1:8000/');
-  await page.getByRole('textbox', { name: 'Hobby Name' }).click();
-  await page.getByRole('textbox', { name: 'Hobby Name' }).fill('Slingshot');
-  await page.getByRole('button', { name: 'Add Hobby' }).click();
-  await page.getByRole('textbox', { name: 'Hobby Name' }).click();
-  await page.getByRole('textbox', { name: 'Hobby Name' }).fill('Knitting');
-  await page.getByRole('button', { name: 'Add Hobby' }).click();
+  const hobbies = ['Slingshot', 'Knitting'];
+  for (const hobby of hobbies) {
+    await page.getByRole('textbox', { name: 'Hobby Name' }).click();
+    await page.getByRole('textbox', { name: 'Hobby Name' }).fill(hobby);
+    await page.getByRole('button', { name: 'Add Hobby' }).click();
+  }
 });
 
 

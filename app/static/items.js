@@ -189,6 +189,51 @@ function closeEditFieldModal() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Add Option modal: Add button
+    const saveAddOptionBtn = document.getElementById('saveAddOptionBtn');
+    if (saveAddOptionBtn) {
+        saveAddOptionBtn.onclick = async function() {
+            const value = document.getElementById('addOptionInput').value.trim();
+            const fieldId = window._addOptionFieldId;
+            const hobbyId = getHobbyId();
+            if (!value || !fieldId) {
+                showToast('Option value required.');
+                return;
+            }
+            try {
+                const response = await fetch(`/config/hobbies/${hobbyId}/fields/${encodeURIComponent(fieldId)}/options`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(value)
+                });
+                if (!response.ok) {
+                    let data = {};
+                    try { data = await response.json(); } catch {}
+                    if (data.detail && data.detail.includes('already exists')) {
+                        showToast('Duplicate option.');
+                    } else {
+                        showToast('Failed to add option.');
+                    }
+                }
+            } catch (e) {
+                showToast('Failed to add option.');
+            }
+            document.getElementById('addOptionModal').style.display = 'none';
+            document.getElementById('addOptionInput').value = '';
+            window._addOptionFieldId = null;
+            await renderFields();
+        };
+    }
+
+    // Add Option modal: Cancel button
+    const cancelAddOptionBtn = document.getElementById('cancelAddOptionBtn');
+    if (cancelAddOptionBtn) {
+        cancelAddOptionBtn.onclick = function() {
+            document.getElementById('addOptionModal').style.display = 'none';
+            document.getElementById('addOptionInput').value = '';
+            window._addOptionFieldId = null;
+        };
+    }
     // Save button for Edit Field modal
     const saveEditFieldBtn = document.getElementById('saveEditFieldBtn');
     if (saveEditFieldBtn) {
